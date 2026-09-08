@@ -1,0 +1,103 @@
+{
+  "exportedAt": "2026-09-08T16:26:03.871Z",
+  "tasks": [
+    {
+      "id": "be7d2433-1e08-4537-b150-827e0756cf80",
+      "title": "Learn React",
+      "description": "Complete React basics",
+      "status": "todo",
+      "priority": "high",
+      "category": "work",
+      "due_date": null,
+      "created_at": "2026-09-08T16:00:05.974Z"
+    },
+    {
+      "id": "5eb3f03f-af84-4857-95a6-7be67abfcdfc",
+      "title": "Learn Node.js",
+      "description": "",
+      "status": "done",
+      "priority": "medium",
+      "category": "work",
+      "due_date": null,
+      "created_at": "2026-09-08T16:00:49.393Z"
+    },
+    {
+      "id": "fd1858c8-c42e-4cf7-9a70-865bd0aac836",
+      "title": "Go Gym",
+      "description": "",
+      "status": "done",
+      "priority": "high",
+      "category": "health",
+      "due_date": null,
+      "created_at": "2026-09-08T16:01:05.957Z"
+    }
+  ],
+  "reminders": [
+    {
+      "id": "e63b35b8-1061-470b-a046-2748da3d5c97",
+      "title": "Meeting",
+      "due_at": "2026-09-09T04:30:00.000Z",
+      "acknowledged": 1,
+      "created_at": "2026-09-08T16:05:05.075Z"
+    },
+    {
+      "id": "d7a18df1-50df-4fb1-a645-04063adafc15",
+      "title": "Call Friend",
+      "due_at": "2026-09-09T14:30:00.000Z",
+      "acknowledged": 0,
+      "created_at": "2026-09-08T16:06:19.770Z"
+    }
+  ],
+  "habits": [
+    {
+      "id": "9d3846e9-381b-408a-bc39-858fe1125e3c",
+      "name": "Morning Exercise",
+      "description": "Exercise for 30 minutes",
+      "frequency": "daily",
+      "active": 1,
+      "created_at": "2026-09-08T16:07:35.487Z"
+    },
+    {
+      "id": "8f795100-c6d7-491e-b928-b0776efd0804",
+      "name": "a",
+      "description": "adg",
+      "frequency": "daily",
+      "active": 1,
+      "created_at": "2026-09-08T16:08:46.714Z"
+    },
+    {
+      "id": "658ed2cc-a585-4912-840d-eb906d5a4361",
+      "name": "reading",
+      "description": "",
+      "frequency": "daily",
+      "active": 1,
+      "created_at": "2026-09-08T16:25:54.051Z"
+    }
+  ],
+  "habitCompletions": [
+    {
+      "id": "d51bd5f8-76f6-4ef7-ac11-382a25f1733e",
+      "habit_id": "9d3846e9-381b-408a-bc39-858fe1125e3c",
+      "completed_date": "2026-09-08",
+      "created_at": "2026-09-08T16:07:44.900Z"
+    },
+    {
+      "id": "7f67ae21-c83b-48ec-8277-7c7310414ae2",
+      "habit_id": "8f795100-c6d7-491e-b928-b0776efd0804",
+      "completed_date": "2026-09-08",
+      "created_at": "2026-09-08T16:08:49.954Z"
+    },
+    {
+      "id": "59dc502a-e95e-4043-af5f-ec2f3a521bc0",
+      "habit_id": "658ed2cc-a585-4912-840d-eb906d5a4361",
+      "completed_date": "2026-09-08",
+      "created_at": "2026-09-08T16:25:55.306Z"
+    }
+  ],
+  "score": {
+    "score": 56.67,
+    "taskCompletionRate": 0.6666666666666666,
+    "reminderAckRate": 0,
+    "habitStreakConsistency": 1
+  }
+}
