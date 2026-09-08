@@ -6,23 +6,21 @@
 
 import type { Habit } from './types';
 import * as repo from './repository';
-import { computeStreak } from './streakUtils';
+import { computeStreak, todayInTimezone } from './streakUtils';
 
 /**
- * Computes the streak for a habit and returns the habit with the streak attached.
- *
- * Uses the existing `computeStreak(Date[])` signature from streakUtils — this is
- * the buggy version that always returns 0 in non-UTC timezones. The timezone-aware
- * fix is deferred to Phase 6.
+ * Computes the streak and checked-in status for a habit in the given timezone.
  *
  * @param habit - The Habit entity (without streak)
- * @returns The Habit entity with the `streak` field populated
+ * @param timezone - IANA timezone identifier (e.g. 'UTC', 'Asia/Kolkata')
+ * @returns The Habit entity with `streak` and `checkedInToday` populated
  */
-export function attachStreak(habit: Habit): Habit {
+export function attachStreak(habit: Habit, timezone: string = 'UTC'): Habit {
   const completions = repo.findCompletionsForHabit(habit.id);
-  // Convert YYYY-MM-DD strings to Date objects for the existing computeStreak signature.
-  // NOTE: new Date('YYYY-MM-DD') parses as UTC midnight — known limitation until Phase 6.
-  const dates: Date[] = completions.map((c) => new Date(c.completedDate));
-  const streak = computeStreak(dates);
-  return { ...habit, streak };
+  const completedDates = completions.map((c) => c.completedDate);
+  const today = todayInTimezone(timezone);
+  const streak = computeStreak(completedDates, today);
+  const checkedInToday = completedDates.includes(today);
+  return { ...habit, streak, checkedInToday };
 }
+

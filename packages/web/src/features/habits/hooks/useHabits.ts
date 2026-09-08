@@ -133,7 +133,14 @@ export function useHabits(): UseHabitsReturn {
         );
         const json: ApiResponse<unknown> = await res.json();
         if (!res.ok || json.error) {
-          throw new Error(json.error ?? 'Failed to check in');
+          const errMsg = json.error ?? 'Failed to check in';
+          if (res.status === 409) {
+            await fetchHabits();
+          } else {
+            setHabits(previousHabits);
+          }
+          setError(errMsg);
+          return;
         }
         await fetchHabits();
       } catch (err) {

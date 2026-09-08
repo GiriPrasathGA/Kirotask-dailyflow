@@ -75,12 +75,24 @@ describe('useHabits', () => {
   });
 
   it('performs check-in and updates habit state', async () => {
-    const mockFetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        data: { id: 'comp-1', habitId: 'habit-1', completedDate: '2026-09-08', createdAt: '' },
-        error: null,
-      }),
+    const updatedHabit: Habit = { ...sampleHabit, streak: 4, checkedInToday: true };
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/check-in')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            data: { id: 'comp-1', habitId: 'habit-1', completedDate: '2026-09-08', createdAt: '' },
+            error: null,
+          }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          data: { items: [updatedHabit], meta: { page: 1, pageSize: 20, total: 1 } },
+          error: null,
+        }),
+      });
     });
     global.fetch = mockFetch;
 
@@ -91,5 +103,41 @@ describe('useHabits', () => {
     });
 
     expect(result.current.error).toBeNull();
+    expect(result.current.habits[0]?.checkedInToday).toBe(true);
+    expect(result.current.habits[0]?.streak).toBe(4);
+  });
+
+  it('handles 409 duplicate check-in by preserving state and setting error', async () => {
+    const checkedHabit: Habit = { ...sampleHabit, streak: 4, checkedInToday: true };
+    const mockFetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/check-in')) {
+        return Promise.resolve({
+          ok: false,
+          status: 409,
+          json: async () => ({
+            data: null,
+            error: 'Already checked in today',
+          }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({
+          data: { items: [checkedHabit], meta: { page: 1, pageSize: 20, total: 1 } },
+          error: null,
+        }),
+      });
+    });
+    global.fetch = mockFetch;
+
+    const { result } = renderHook(() => useHabits());
+
+    await act(async () => {
+      await result.current.checkIn('habit-1');
+    });
+
+    expect(result.current.error).toBe('Already checked in today');
+    expect(result.current.habits[0]?.checkedInToday).toBe(true);
+    expect(result.current.habits[0]?.streak).toBe(4);
   });
 });

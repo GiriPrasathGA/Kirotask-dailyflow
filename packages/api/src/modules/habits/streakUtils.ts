@@ -1,11 +1,41 @@
 /**
  * Utility functions for habit streak calculation.
  *
- * WORKSHOP NOTE — Phase 6:
- * computeStreak() contains a bug that causes it to always return 0 in
- * non-UTC timezones (including UTC+5:30 IST). Use the Kiro Fix Power
- * in Phase 6 to identify and fix the issue. Do not fix it before Phase 6.
+ * Requirements: 3.8, 6.5
  */
+
+/**
+ * Returns the current calendar date in the given IANA timezone as YYYY-MM-DD.
+ * Uses Intl.DateTimeFormat to convert the current instant to a locale-specific date.
+ *
+ * @param timezone - IANA timezone identifier (e.g. 'UTC', 'Asia/Kolkata')
+ * @returns Date string in YYYY-MM-DD format
+ */
+export function todayInTimezone(timezone: string): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+
+  const get = (type: string): string => parts.find((p) => p.type === type)?.value ?? '';
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+
+/**
+ * Subtracts `n` days from a YYYY-MM-DD string and returns the result
+ * as a YYYY-MM-DD string. Pure arithmetic operation — no timezone risk.
+ *
+ * @param dateStr - Base date string in YYYY-MM-DD format
+ * @param n - Number of days to subtract
+ * @returns Resulting date string in YYYY-MM-DD format
+ */
+export function subtractDay(dateStr: string, n: number): string {
+  const d = new Date(`${dateStr}T12:00:00Z`); // noon UTC avoids DST edge cases
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().split('T')[0] as string;
+}
 
 /**
  * Computes the current consecutive-day streak from habit completion timestamps.
@@ -13,44 +43,40 @@
  * A streak is the number of consecutive calendar days — ending today or
  * yesterday — on which the habit was completed at least once.
  *
- * @param completionDates - Array of Date objects representing when the habit was completed
+ * @param completionDates - Array of 'YYYY-MM-DD' strings or Date objects
+ * @param today - Today's date in caller's timezone (defaults to today in UTC)
  * @returns The length of the current streak in days (0 if no streak)
  */
-export function computeStreak(completionDates: Date[]): number {
+export function computeStreak(
+  completionDates: (string | Date)[],
+  today?: string,
+): number {
   if (completionDates.length === 0) return 0;
 
-  // Deduplicate: reduce to one entry per calendar day using UTC date strings.
-  const uniqueDays = [
-    ...new Set(
-      completionDates.map((d) => d.toISOString().split('T')[0])
-      // BUG: toISOString() returns the date in UTC.
-      // In UTC+5:30 (IST), a completion logged at 01:00 IST is still
-      // 19:30 UTC the *previous* day — so the UTC date string is one
-      // day behind the user's local calendar date.
-    ),
-  ]
-    .sort()
-    .reverse();
+  // Normalize inputs to YYYY-MM-DD strings
+  const strDates: string[] = completionDates.map((d) =>
+    typeof d === 'string' ? d : (d.toISOString().split('T')[0] as string),
+  );
+
+  const todayStr = today ?? (new Date().toISOString().split('T')[0] as string);
+
+  // Deduplicate and sort descending (most recent first)
+  const uniqueDays = [...new Set(strDates)].sort().reverse();
+
+  // Anchor: streak must start on today or yesterday
+  const anchor = uniqueDays[0];
+  const yesterday = subtractDay(todayStr, 1);
+  if (anchor !== todayStr && anchor !== yesterday) {
+    return 0;
+  }
 
   let streak = 0;
+  let expected = anchor;
 
-  // Anchor: today at local midnight.
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  for (let i = 0; i < uniqueDays.length; i++) {
-    const expected = new Date(today);
-    expected.setDate(expected.getDate() - i);
-    // expected is local midnight, e.g. 2024-01-15T00:00:00+05:30
-
-    const actual = new Date(uniqueDays[i]);
-    // BUG: new Date('2024-01-15') parses as 2024-01-15T00:00:00Z (UTC midnight).
-    // In UTC+5:30 that equals 2024-01-15T05:30:00+05:30 — 5.5 hours AFTER
-    // local midnight. So actual.getTime() !== expected.getTime() on every
-    // iteration, and the streak is always 0.
-
-    if (actual.getTime() === expected.getTime()) {
+  for (const day of uniqueDays) {
+    if (day === expected) {
       streak++;
+      expected = subtractDay(expected, 1);
     } else {
       break;
     }
@@ -58,3 +84,4 @@ export function computeStreak(completionDates: Date[]): number {
 
   return streak;
 }
+

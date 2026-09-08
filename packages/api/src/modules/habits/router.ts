@@ -45,7 +45,7 @@ habitsRouter.get('/', (req: Request, res: Response): void => {
   const { page, pageSize } = parsePaginationParams(req);
 
   try {
-    const result = svc.listHabits(page, pageSize);
+    const result = svc.listHabits(timezone as string, page, pageSize);
     const payload: ApiResponse<PaginatedResponse<Habit>> = { data: result, error: null };
     res.status(200).json(payload);
   } catch (err) {
@@ -97,7 +97,7 @@ habitsRouter.post('/:id/check-in', (req: Request, res: Response): void => {
   }
 
   try {
-    const completion = svc.checkIn(req.params['id'] as string);
+    const completion = svc.checkIn(req.params['id'] as string, timezone as string);
     const payload: ApiResponse<HabitCompletion> = { data: completion, error: null };
     res.status(201).json(payload);
   } catch (err) {
@@ -125,7 +125,7 @@ habitsRouter.get('/:id', (req: Request, res: Response): void => {
   }
 
   try {
-    const habit = svc.getHabitById(req.params['id'] as string);
+    const habit = svc.getHabitById(req.params['id'] as string, timezone as string);
     if (!habit) {
       sendNotFound(res, 'Habit not found');
       return;

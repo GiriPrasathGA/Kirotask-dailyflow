@@ -23,7 +23,7 @@
  */
 
 import * as repo from './repository';
-import { computeStreak } from '../habits/streakUtils';
+import { computeStreak, todayInTimezone } from '../habits/streakUtils';
 
 /**
  * Composite Productivity Score data payload.
@@ -42,9 +42,6 @@ export interface ScoreData {
  * @returns ScoreData containing the overall score and individual component rates
  */
 export function computeScore(timezone: string = 'UTC'): ScoreData {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _tz = timezone;
-
   // ── Task Completion Rate (TCR) ──────────────────────────────────────────
   // Ratio of tasks with status = 'done' to total tasks (0 if no tasks)
   const totalTasks = repo.countTotalTasks();
@@ -61,14 +58,13 @@ export function computeScore(timezone: string = 'UTC'): ScoreData {
   // ── Habit Streak Consistency (HSC) ──────────────────────────────────────
   // Ratio of active habits with streak ≥ 1 to total active habits
   const activeHabitIds = repo.findActiveHabitIds();
+  const today = todayInTimezone(timezone);
 
   let habitsWithStreak = 0;
   if (activeHabitIds.length > 0) {
     for (const habitId of activeHabitIds) {
       const completionDates = repo.findCompletionDatesForHabit(habitId);
-      // Convert YYYY-MM-DD strings to Date objects for the existing computeStreak signature
-      const dates: Date[] = completionDates.map((d) => new Date(d));
-      const streak = computeStreak(dates);
+      const streak = computeStreak(completionDates, today);
       if (streak >= 1) {
         habitsWithStreak++;
       }

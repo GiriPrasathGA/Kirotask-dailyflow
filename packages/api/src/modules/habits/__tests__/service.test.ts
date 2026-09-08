@@ -117,18 +117,39 @@ describe('Habits Service', () => {
   });
 
   describe('listHabits', () => {
-    it('returns only active habits with streak attached', (): void => {
+    it('returns active habits with streak and checkedInToday attached', (): void => {
       vi.mocked(repo.countActiveHabits).mockReturnValue(1);
       vi.mocked(repo.findAllActiveHabits).mockReturnValue([activeHabit]);
-      vi.mocked(repo.findCompletionsForHabit).mockReturnValue([]);
+      vi.mocked(repo.findCompletionsForHabit).mockReturnValue([
+        { id: 'c1', habitId: 'habit-uuid-1', completedDate: '2026-09-08', createdAt: '' },
+      ]);
 
-      const result = service.listHabits(1, 20);
+      const result = service.listHabits('UTC', 1, 20);
 
       expect(result.items.length).toBe(1);
       expect(result.items[0]?.name).toBe('Morning Workout');
       expect(result.items[0]?.streak).toBeDefined();
+      expect(result.items[0]?.checkedInToday).toBe(true);
       expect(result.meta).toEqual({ page: 1, pageSize: 20, total: 1 });
       expect(repo.findAllActiveHabits).toHaveBeenCalledWith(20, 0);
+    });
+
+    it('allows two different habits to check in independently on same day', (): void => {
+      const habit2: Habit = { ...activeHabit, id: 'habit-uuid-2', name: 'Read Book' };
+      vi.mocked(repo.findHabitById).mockImplementation((id: string) => {
+        if (id === 'habit-uuid-1') return activeHabit;
+        if (id === 'habit-uuid-2') return habit2;
+        return null;
+      });
+      vi.mocked(repo.findCompletionByDate).mockReturnValue(null);
+      vi.mocked(repo.insertCompletion).mockImplementation((): void => {});
+
+      const res1 = service.checkIn('habit-uuid-1', 'UTC');
+      const res2 = service.checkIn('habit-uuid-2', 'UTC');
+
+      expect(res1.habitId).toBe('habit-uuid-1');
+      expect(res2.habitId).toBe('habit-uuid-2');
+      expect(repo.insertCompletion).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -21,7 +21,8 @@ vi.mock('better-sqlite3', () => {
 
 vi.mock('../repository');
 vi.mock('../../habits/streakUtils', () => ({
-  computeStreak: vi.fn().mockImplementation((dates: Date[]): number => (dates.length > 0 ? 1 : 0)),
+  computeStreak: vi.fn().mockImplementation((dates: unknown[]): number => (dates.length > 0 ? 1 : 0)),
+  todayInTimezone: vi.fn().mockReturnValue('2026-09-08'),
 }));
 
 describe('Score Service Property Tests', () => {

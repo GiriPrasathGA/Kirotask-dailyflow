@@ -14,6 +14,7 @@ import type { PaginatedResponse } from '../../types/shared';
 import type { Habit, HabitCompletion, CreateHabitDto } from './types';
 import * as repo from './repository';
 import { attachStreak } from './serviceHelpers';
+import { todayInTimezone } from './streakUtils';
 import {
   ServiceError,
   validatePagination,
@@ -28,20 +29,35 @@ export { ServiceError } from './validation';
 /**
  * Returns a paginated list of active habits, each with a current streak attached.
  *
- * @param page     - 1-indexed page number; defaults to 1
- * @param pageSize - Number of items per page (1–100); defaults to 20
+ * @param timezoneOrPage - IANA timezone identifier (string) or page number
+ * @param pageOrPageSize - 1-indexed page number (if timezone passed) or pageSize
+ * @param pageSizeParam  - Number of items per page (1–100)
  * @returns Paginated response containing active Habit entities with streak populated
  * @throws ServiceError(400) if pagination params are invalid
  */
 export function listHabits(
-  page?: number,
-  pageSize?: number,
+  timezoneOrPage?: string | number,
+  pageOrPageSize?: number,
+  pageSizeParam?: number,
 ): PaginatedResponse<Habit> {
+  let timezone = 'UTC';
+  let page: number | undefined;
+  let pageSize: number | undefined;
+
+  if (typeof timezoneOrPage === 'string') {
+    timezone = timezoneOrPage;
+    page = pageOrPageSize;
+    pageSize = pageSizeParam;
+  } else {
+    page = timezoneOrPage;
+    pageSize = pageOrPageSize;
+  }
+
   const { page: p, pageSize: ps } = validatePagination(page, pageSize);
   const offset = (p - 1) * ps;
   const total = repo.countActiveHabits();
   const habits = repo.findAllActiveHabits(ps, offset);
-  const items = habits.map(attachStreak);
+  const items = habits.map((h) => attachStreak(h, timezone));
 
   return { items, meta: { page: p, pageSize: ps, total } };
 }
@@ -75,32 +91,31 @@ export function createHabit(dto: CreateHabitDto): Habit {
 /**
  * Retrieves a single habit by its UUID with the current streak attached.
  *
- * Returns null if no habit with the given id exists — the router decides
- * whether to convert this to a 404.
- *
- * @param id - The UUID of the habit to retrieve
+ * @param id       - The UUID of the habit to retrieve
+ * @param timezone - IANA timezone identifier; defaults to 'UTC'
  * @returns The Habit entity with streak populated, or null if not found
  */
-export function getHabitById(id: string): Habit | null {
+export function getHabitById(id: string, timezone: string = 'UTC'): Habit | null {
   const habit = repo.findHabitById(id);
   if (!habit) {
     return null;
   }
-  return attachStreak(habit);
+  return attachStreak(habit, timezone);
 }
 
 /**
  * Applies a partial update to an existing habit's name and/or description.
- * Only the fields supplied in `dto` are modified; all others remain unchanged.
  *
- * @param id  - The UUID of the habit to update
- * @param dto - Partial update object; only name and description are patchable
+ * @param id       - The UUID of the habit to update
+ * @param dto      - Partial update object; only name and description are patchable
+ * @param timezone - IANA timezone identifier; defaults to 'UTC'
  * @returns The updated Habit entity with streak attached, or null if not found
  * @throws ServiceError(400) for any validation failure on supplied fields
  */
 export function updateHabit(
   id: string,
   dto: { name?: string; description?: string },
+  timezone: string = 'UTC',
 ): Habit | null {
   const existing = repo.findHabitById(id);
   if (!existing) {
@@ -118,35 +133,29 @@ export function updateHabit(
   if (!updated) {
     return null;
   }
-  return attachStreak(updated);
+  return attachStreak(updated, timezone);
 }
 
 /**
  * Soft-deletes a habit by setting its `active` flag to false.
- * The habit row and its completions are preserved for historical score calculations.
  *
  * @param id - The UUID of the habit to deactivate
- * @returns true if the habit was deactivated; false if no habit with the given id was found
+ * @returns true if the habit was deactivated; false if not found
  */
 export function deactivateHabit(id: string): boolean {
   return repo.deactivateHabit(id);
 }
 
 /**
- * Records a daily check-in for an active habit using the current UTC date.
+ * Records a daily check-in for an active habit in the caller's timezone.
  *
- * NOTE: Uses UTC date (`new Date().toISOString().split('T')[0]`) as a known
- * limitation until Phase 6 introduces timezone-aware date handling. The router
- * in Wave 4 will accept a timezone query param, but the service does not yet
- * use it — the Phase 6 fix will plumb the timezone through.
- *
- * @param habitId - The UUID of the habit to check in
+ * @param habitId  - The UUID of the habit to check in
+ * @param timezone - IANA timezone identifier; defaults to 'UTC'
  * @returns The newly created HabitCompletion entity
  * @throws ServiceError(404) if no habit with the given id exists
- * @throws ServiceError(409) if the habit is inactive
- * @throws ServiceError(409) if a check-in has already been recorded for today (UTC)
+ * @throws ServiceError(409) if the habit is inactive or already checked in today
  */
-export function checkIn(habitId: string): HabitCompletion {
+export function checkIn(habitId: string, timezone: string = 'UTC'): HabitCompletion {
   const habit = repo.findHabitById(habitId);
   if (!habit) {
     throw new ServiceError(404, 'Habit not found');
@@ -155,8 +164,7 @@ export function checkIn(habitId: string): HabitCompletion {
     throw new ServiceError(409, 'Cannot check in on an inactive habit');
   }
 
-  // UTC date string — known limitation until Phase 6 timezone fix
-  const today = new Date().toISOString().split('T')[0] as string;
+  const today = todayInTimezone(timezone);
 
   const existing = repo.findCompletionByDate(habitId, today);
   if (existing) {
@@ -173,3 +181,4 @@ export function checkIn(habitId: string): HabitCompletion {
   repo.insertCompletion(completion);
   return completion;
 }
+

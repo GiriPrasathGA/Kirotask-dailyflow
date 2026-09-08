@@ -25,6 +25,7 @@ export interface Habit {
   active: boolean;
   createdAt: string;    // ISO 8601
   streak?: number;      // populated by GET /habits
+  checkedInToday?: boolean; // populated by GET /habits
 }
 
 /**
