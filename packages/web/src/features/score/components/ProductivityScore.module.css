@@ -1,0 +1,205 @@
+.container {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.25rem;
+}
+
+.meta {
+  font-size: 0.8125rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.errorBanner {
+  background: #fee2e2;
+  color: #b91c1c;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.25rem;
+  font-size: 0.875rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.successBanner {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  word-break: break-all;
+}
+
+.dismissBtn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.dismissBtn:hover {
+  opacity: 1;
+}
+
+.scoreCard {
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  border-radius: 12px;
+  padding: 1.75rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+.scoreValue {
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.02em;
+}
+
+.scoreLabel {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-bottom: 1.25rem;
+}
+
+.progressBar {
+  width: 100%;
+  max-width: 320px;
+  height: 10px;
+  border-radius: 999px;
+  appearance: none;
+  -webkit-appearance: none;
+  overflow: hidden;
+}
+
+.progressBar::-webkit-progress-bar {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+}
+
+.progressBar::-webkit-progress-value {
+  background-color: #ffffff;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progressBar::-moz-progress-bar {
+  background-color: #ffffff;
+  border-radius: 999px;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.metricCard {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  transition: border-color 0.15s;
+}
+
+.metricCard:hover {
+  border-color: #c7d2fe;
+}
+
+.metricTitle {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin: 0;
+}
+
+.metricValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.metricWeight {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.exportSection {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.exportBtn {
+  background: #111827;
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background-color 0.15s;
+}
+
+.exportBtn:hover:not(:disabled) {
+  background: #1f2937;
+}
+
+.exportBtn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.emptyState,
+.loadingState {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  border: 2px dashed #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}

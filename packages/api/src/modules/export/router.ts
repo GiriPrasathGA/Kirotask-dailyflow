@@ -1,36 +1,43 @@
-import { Router, Request, Response } from 'express';
-import { ApiResponse } from '../../types/shared';
+/**
+ * Express router for the Export module.
+ *
+ * Exposes the POST /export endpoint to export all user data to a local JSON file.
+ *
+ * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 6.2
+ */
 
-export const exportRouter = Router();
+import { Router, Request, Response } from 'express';
+import type { ApiResponse } from '../../types/shared';
+import type { ExportResult } from './service';
+import * as svc from './service';
+
+export const exportRouter: Router = Router();
 
 /**
- * POST /api/v1/export
+ * Handles POST requests to export all application data to a JSON file.
  *
- * Exports all user data (tasks, reminders, habits, productivity score) to a
- * timestamped JSON file in the ./exports/ directory.
+ * Returns HTTP 200 with ApiResponse<{ filePath: string }> on success.
+ * Returns HTTP 500 with ApiResponse<null> on filesystem failure.
  *
- * ─────────────────────────────────────────────────────────────────────────────
- * PHASE 5 REQUIREMENT
- * ─────────────────────────────────────────────────────────────────────────────
- * This endpoint is intentionally unimplemented. It returns HTTP 500 until you
- * complete Phase 5 of the workshop:
- *
- *   Step 1 — Create .kiro/settings/mcp.json with a filesystem MCP server.
- *   Step 2 — Verify the server shows "Connected" in Kiro → Settings → MCP.
- *   Step 3 — Ask Kiro to implement this endpoint using the filesystem MCP tool
- *             (NOT Node's built-in fs module — the submission validator checks).
- *
- * The MCP filesystem tool writes the export file; the endpoint returns the
- * file path so the frontend can display it in a success banner.
- * ─────────────────────────────────────────────────────────────────────────────
+ * @param req - Express request
+ * @param res - Express response; returns ApiResponse<{ filePath: string }> or HTTP 500
+ * @returns void
  */
-exportRouter.post('/export', (_req: Request, res: Response): void => {
-  const payload: ApiResponse<null> = {
-    data: null,
-    error:
-      'Export not implemented. ' +
-      'Phase 5: configure the MCP filesystem server in .kiro/settings/mcp.json, ' +
-      'then ask Kiro to implement this endpoint using the filesystem MCP tool.',
-  };
-  res.status(500).json(payload);
-});
+function handleExport(_req: Request, res: Response): void {
+  try {
+    const result: ExportResult = svc.exportData();
+    const payload: ApiResponse<ExportResult> = {
+      data: result,
+      error: null,
+    };
+    res.status(200).json(payload);
+  } catch (err) {
+    const payload: ApiResponse<null> = {
+      data: null,
+      error: `Export failed: ${(err as Error).message}`,
+    };
+    res.status(500).json(payload);
+  }
+}
+
+exportRouter.post('/export', handleExport);

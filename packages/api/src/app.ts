@@ -1,11 +1,18 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { exportRouter } from './modules/export/router';
+import { tasksRouter } from './modules/tasks/router';
+import { remindersRouter } from './modules/reminders/router';
+import { habitsRouter } from './modules/habits/router';
+import { scoreRouter } from './modules/score/router';
 import { ApiResponse } from './types/shared';
 
 /**
  * Creates and configures the Express application.
- * Module routers are registered here after Phase 3 (scaffold-module skill).
+ * Registers middleware, health check, export, and module routers under /api/v1.
+ *
+ * Requirements: 1.1, 2.1, 3.1, 4.1, 6.2
+ *
  * @returns Configured Express application instance
  */
 export function createApp(): Application {
@@ -23,14 +30,14 @@ export function createApp(): Application {
     res.json(payload);
   });
 
-  // ── Export (Phase 5 — requires MCP filesystem configuration) ──────────────
+  // ── Export ─────────────────────────────────────────────────────────────────
   app.use('/api/v1', exportRouter);
 
-  // ── Module routers — uncomment after Phase 3 ──────────────────────────────
-  // app.use('/api/v1/tasks',     tasksRouter);
-  // app.use('/api/v1/reminders', remindersRouter);
-  // app.use('/api/v1/habits',    habitsRouter);
-  // app.use('/api/v1/score',     scoreRouter);
+  // ── Module routers ────────────────────────────────────────────────────────
+  app.use('/api/v1/tasks', tasksRouter);
+  app.use('/api/v1/reminders', remindersRouter);
+  app.use('/api/v1/habits', habitsRouter);
+  app.use('/api/v1', scoreRouter);
 
   // ── 404 handler ───────────────────────────────────────────────────────────
   app.use((_req: Request, res: Response): void => {
